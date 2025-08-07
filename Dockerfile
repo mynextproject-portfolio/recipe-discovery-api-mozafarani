@@ -4,11 +4,11 @@ FROM python:3.12-slim
 # Set the working directory in the container
 WORKDIR /app
 
-# Install FastAPI and Uvicorn
-RUN pip install fastapi uvicorn
+# Install FastAPI, Uvicorn, and pytest for running tests
+RUN pip install --no-cache-dir fastapi uvicorn pytest httpx
 
 # Copy the FastAPI app into the container
-COPY main.py .
+COPY . .
 
 # Expose port 80 for HTTP traffic
 EXPOSE 80
