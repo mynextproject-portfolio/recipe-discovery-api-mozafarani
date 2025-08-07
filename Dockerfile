@@ -4,8 +4,8 @@ FROM python:3.12-slim
 # Set the working directory in the container
 WORKDIR /app
 
-# Install FastAPI and Uvicorn
-RUN pip install fastapi uvicorn
+# Install FastAPI, Uvicorn, and pytest for running tests
+RUN pip install --no-cache-dir fastapi uvicorn pytest
 
 # Copy the FastAPI app into the container
 COPY main.py .
