@@ -7,5 +7,3 @@ app = FastAPI()
 @app.get("/ping", response_class=PlainTextResponse)
 def ping() -> str:
     return "pong"
-
-# am
