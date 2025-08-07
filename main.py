@@ -4,12 +4,11 @@ from typing import List, Dict, Any
 
 app = FastAPI()
 
-# Health check
 @app.get("/ping", response_class=PlainTextResponse)
 def ping() -> str:
     return "pong"
 
-# In-memory storage
+# In-memory storage with full recipe fields
 recipes: List[Dict[str, Any]] = [
     {
         "id": 1,
@@ -20,10 +19,30 @@ recipes: List[Dict[str, Any]] = [
         "cookTime": "15 minutes",
         "difficulty": "Easy",
         "cuisine": "Italian"
-    }
+    },
+    {
+        "id": 2,
+        "title": "Chicken Rice Bowl",
+        "ingredients": ["chicken", "rice", "soy sauce", "green onion"],
+        "steps": ["Cook rice", "Pan sear chicken", "Slice and serve"],
+        "prepTime": "15 minutes",
+        "cookTime": "20 minutes",
+        "difficulty": "Easy",
+        "cuisine": "Asian"
+    },
+    {
+        "id": 3,
+        "title": "Simple Salad",
+        "ingredients": ["lettuce", "tomato", "cucumber", "olive oil"],
+        "steps": ["Chop veggies", "Dress and toss"],
+        "prepTime": "5 minutes",
+        "cookTime": "0 minutes",
+        "difficulty": "Easy",
+        "cuisine": "Mediterranean"
+    },
 ]
 
-next_id = 2  # Tracks the next available recipe ID
+next_id = 4  # Tracks the next available recipe ID
 
 # READ - all
 @app.get("/recipes")
