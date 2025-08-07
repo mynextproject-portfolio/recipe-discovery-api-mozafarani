@@ -5,7 +5,7 @@ FROM python:3.12-slim
 WORKDIR /app
 
 # Install FastAPI, Uvicorn, and pytest for running tests
-RUN pip install --no-cache-dir fastapi uvicorn pytest
+RUN pip install --no-cache-dir fastapi uvicorn pytest httpx
 
 # Copy the FastAPI app into the container
 COPY . .
