@@ -84,3 +84,11 @@ def delete_recipe(recipe_id: int):
             recipes.pop(idx)
             return
     raise HTTPException(status_code=404, detail="Recipe not found")
+
+# SEARCH
+@app.get("/recipes/search")
+def search_recipes(q: str = ""):
+    if not q.strip():
+        return []
+    q_lower = q.lower()
+    return [r for r in recipes if q_lower in r["title"].lower()]
