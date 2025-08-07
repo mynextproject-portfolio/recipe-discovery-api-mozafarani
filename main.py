@@ -49,6 +49,14 @@ next_id = 4  # Tracks the next available recipe ID
 def list_recipes():
     return recipes
 
+# SEARCH — must come before single recipe route
+@app.get("/recipes/search")
+def search_recipes(q: str = ""):
+    if not q.strip():
+        return []
+    q_lower = q.lower()
+    return [r for r in recipes if q_lower in r["title"].lower()]
+
 # READ - single
 @app.get("/recipes/{recipe_id}")
 def get_recipe(recipe_id: int):
@@ -85,10 +93,4 @@ def delete_recipe(recipe_id: int):
             return
     raise HTTPException(status_code=404, detail="Recipe not found")
 
-# SEARCH
-@app.get("/recipes/search")
-def search_recipes(q: str = ""):
-    if not q.strip():
-        return []
-    q_lower = q.lower()
-    return [r for r in recipes if q_lower in r["title"].lower()]
+
