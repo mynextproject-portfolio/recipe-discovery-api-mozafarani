@@ -16,5 +16,8 @@ COPY . .
 # Expose port 80 for HTTP traffic
 EXPOSE 80
 
+# Set default Redis URL for local development
+ENV REDIS_URL=redis://localhost:6379
+
 # Run the FastAPI app with Uvicorn
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]

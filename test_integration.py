@@ -4,12 +4,14 @@ from fastapi import FastAPI
 from app.core.app import create_app
 from app.repositories.recipe_repository import InMemoryRecipeRepository
 from app.services.recipe_service import RecipeService
+from app.services.mealdb_service import MealDBService
 from app.dependencies import get_recipe_service
 
 
 # Create a shared test repository that persists across requests
 test_repository = InMemoryRecipeRepository()
-test_service = RecipeService(test_repository)
+test_mealdb_service = MealDBService(redis_url="redis://localhost:6379")
+test_service = RecipeService(test_repository, test_mealdb_service)
 
 
 def get_test_recipe_service():
