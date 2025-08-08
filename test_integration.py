@@ -1,13 +1,74 @@
 import pytest
 from fastapi.testclient import TestClient
-from main import app
+from fastapi import FastAPI
+from app.core.app import create_app
+from app.repositories.recipe_repository import InMemoryRecipeRepository
+from app.services.recipe_service import RecipeService
+from app.dependencies import get_recipe_service
+
+
+# Create a shared test repository that persists across requests
+test_repository = InMemoryRecipeRepository()
+test_service = RecipeService(test_repository)
+
+
+def get_test_recipe_service():
+    """Test dependency that returns the shared test service"""
+    return test_service
+
+
+# Create test app with dependency override
+app = create_app()
+app.dependency_overrides[get_recipe_service] = get_test_recipe_service
 
 client = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def reset_test_data():
+    """Reset test data before each test"""
+    # Clear the test repository and reinitialize with default data
+    test_repository.recipes.clear()
+    test_repository.recipes.extend([
+        {
+            "id": 1,
+            "title": "Garlic Shrimp Pasta",
+            "ingredients": ["shrimp", "pasta", "garlic", "olive oil", "lemon"],
+            "steps": ["Boil pasta", "Saute garlic and shrimp", "Toss together"],
+            "prepTime": "10 minutes",
+            "cookTime": "15 minutes",
+            "difficulty": "Easy",
+            "cuisine": "Italian"
+        },
+        {
+            "id": 2,
+            "title": "Chicken Rice Bowl",
+            "ingredients": ["chicken", "rice", "soy sauce", "green onion"],
+            "steps": ["Cook rice", "Pan sear chicken", "Slice and serve"],
+            "prepTime": "15 minutes",
+            "cookTime": "20 minutes",
+            "difficulty": "Easy",
+            "cuisine": "Asian"
+        },
+        {
+            "id": 3,
+            "title": "Simple Salad",
+            "ingredients": ["lettuce", "tomato", "cucumber", "olive oil"],
+            "steps": ["Chop veggies", "Dress and toss"],
+            "prepTime": "5 minutes",
+            "cookTime": "0 minutes",
+            "difficulty": "Easy",
+            "cuisine": "Mediterranean"
+        },
+    ])
+    test_repository.next_id = 4
+
 
 def test_ping():
     resp = client.get("/ping")
     assert resp.status_code == 200
     assert resp.text == "pong"
+
 
 def test_list_recipes_initial():
     resp = client.get("/recipes")
@@ -17,6 +78,7 @@ def test_list_recipes_initial():
     assert len(data) >= 1
     assert "title" in data[0]
 
+
 def test_get_existing_recipe():
     resp = client.get("/recipes/1")
     assert resp.status_code == 200
@@ -24,9 +86,11 @@ def test_get_existing_recipe():
     assert data["id"] == 1
     assert "title" in data
 
+
 def test_get_non_existing_recipe():
     resp = client.get("/recipes/99999")
     assert resp.status_code == 404
+
 
 def test_search_recipes_case_insensitive():
     resp_lower = client.get("/recipes/search?q=pasta")
@@ -37,15 +101,18 @@ def test_search_recipes_case_insensitive():
     # ensure at least one match for "pasta"
     assert any("pasta" in r["title"].lower() for r in resp_lower.json())
 
+
 def test_search_recipes_empty_query():
     resp = client.get("/recipes/search?q=")
     assert resp.status_code == 200
     assert resp.json() == []
 
+
 def test_search_recipes_no_match():
     resp = client.get("/recipes/search?q=nonexistentfood")
     assert resp.status_code == 200
     assert resp.json() == []
+
 
 def test_happy_path_crud_and_search():
     # Create
