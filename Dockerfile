@@ -4,8 +4,11 @@ FROM python:3.12-slim
 # Set the working directory in the container
 WORKDIR /app
 
-# Install FastAPI, Uvicorn, and pytest for running tests
-RUN pip install --no-cache-dir fastapi uvicorn pytest httpx
+# Copy requirements first for better caching
+COPY requirements.txt .
+
+# Install Python packages from requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the FastAPI app into the container
 COPY . .
