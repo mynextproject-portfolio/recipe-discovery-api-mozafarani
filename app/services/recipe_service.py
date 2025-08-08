@@ -5,9 +5,9 @@ from app.services.mealdb_service import MealDBService
 
 
 class RecipeService:
-    def __init__(self, repository: RecipeRepository):
+    def __init__(self, repository: RecipeRepository, mealdb_service: MealDBService):
         self.repository = repository
-        self.mealdb_service = MealDBService()
+        self.mealdb_service = mealdb_service
 
     def get_all_recipes(self) -> List[Dict[str, Any]]:
         """Get all recipes"""
@@ -26,7 +26,7 @@ class RecipeService:
         for recipe in internal_recipes:
             recipe["source"] = "internal"
         
-        # Get MealDB recipes
+        # Get MealDB recipes (with caching)
         mealdb_recipes = self.mealdb_service.search_recipes(query)
         
         # Combine results (internal first, then MealDB)

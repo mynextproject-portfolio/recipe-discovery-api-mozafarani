@@ -1,28 +1,46 @@
 import requests
 import re
 from typing import List, Dict, Any, Optional
+from app.services.cache_service import CacheService
 
 
 class MealDBService:
-    """Service for interacting with TheMealDB API"""
+    """Service for interacting with TheMealDB API with Redis caching"""
     
-    def __init__(self, base_url: str = "https://www.themealdb.com/api/json/v1/1"):
+    def __init__(self, base_url: str = "https://www.themealdb.com/api/json/v1/1", redis_url: str = "redis://localhost:6379"):
         self.base_url = base_url
+        self.cache_service = CacheService(redis_url)
     
     def search_recipes(self, query: str) -> List[Dict[str, Any]]:
-        """Search recipes in MealDB by name"""
+        """Search recipes in MealDB by name with caching"""
         if not query.strip():
             return []
         
+        # Check cache first
+        cached_results = self.cache_service.get_cached_search_results(query)
+        if cached_results is not None:
+            print(f"Cache HIT for query: '{query}'")
+            return cached_results
+        
+        print(f"Cache MISS for query: '{query}' - making API call")
+        
+        # Make API call if not in cache
         try:
             response = requests.get(f"{self.base_url}/search.php", params={"s": query})
             response.raise_for_status()
             data = response.json()
             
             if not data.get("meals"):
+                # Cache empty results too
+                self.cache_service.cache_search_results(query, [])
                 return []
             
-            return [self._transform_mealdb_recipe(meal) for meal in data["meals"]]
+            results = [self._transform_mealdb_recipe(meal) for meal in data["meals"]]
+            
+            # Cache the results
+            self.cache_service.cache_search_results(query, results)
+            
+            return results
         
         except (requests.RequestException, KeyError, ValueError) as e:
             # Log error in production, but return empty list for now
